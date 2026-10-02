@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FY27 Planning Workbench</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7f9;--card:#fff;--tx:#1b2330;--mu:#667085;--bd:#e3e6eb;--ac:#2b59c3;--ok:#1a7f4b;--bad:#c23b3b;--wn:#b7791f}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b212a;--tx:#e8ecf1;--mu:#8e99a8;--bd:#2c3440;--ac:#7aa2f7;--ok:#4cc38a;--bad:#f0787a;--wn:#e5b04a}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1b212a;--tx:#e8ecf1;--mu:#8e99a8;--bd:#2c3440;--ac:#7aa2f7;--ok:#4cc38a;--bad:#f0787a;--wn:#e5b04a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--card);border-bottom:1px solid var(--bd)}
+h1{font-size:17px;margin:0}h2{font-size:15px;margin:0 0 10px}
+.sub{color:var(--mu);font-size:12px}
+select,button,input,textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px 9px}
+button{cursor:pointer}button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+button:disabled{opacity:.4;cursor:not-allowed}
+nav{display:flex;gap:4px;padding:10px 18px 0;overflow-x:auto}
+nav button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--mu);white-space:nowrap}
+nav button.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+main{padding:16px 18px;max-width:1100px;margin:auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px}
+.kpi b{display:block;font-size:20px}.kpi span{font-size:12px;color:var(--mu)}
+.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:600;font-size:12px}
+tr.t td{font-weight:700}.pos{color:var(--ok)}.neg{color:var(--bad)}
+.drv{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.drv label{display:block;font-size:12px;color:var(--mu)}
+.drv .r{display:flex;gap:8px;align-items:center}.drv input[type=range]{flex:1;padding:0}
+.drv output{min-width:64px;text-align:right;font-weight:600}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;border:1px solid var(--bd)}
+.Draft{color:var(--mu)}.Submitted{color:var(--wn)}.Approved{color:var(--ok)}.Rejected{color:var(--bad)}
+textarea{width:100%;min-height:62px;margin:6px 0}
+.note{font-size:12px;color:var(--mu);margin-top:6px}
+.log div{padding:6px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.slic{display:flex;flex-wrap:wrap;gap:10px;align-items:end}.slic label{font-size:11px;color:var(--mu);display:block}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.bar{display:grid;grid-template-columns:96px 1fr 64px;gap:8px;align-items:center;margin:6px 0;font-size:12px}.bar i{display:block;height:10px;background:var(--ac);border-radius:3px}.bar i.n{background:var(--bad)}.bar b{text-align:right}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.steps span{padding:3px 10px;border-radius:99px;border:1px solid var(--bd);font-size:12px;color:var(--mu)}.steps span.on{background:var(--ac);color:#fff;border-color:var(--ac)}.steps span.done{color:var(--ok);border-color:var(--ok)}
+.sm{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}.sm button.on{background:var(--ac);color:#fff}
+.l td,.l th{text-align:left}.l input,.l select{max-width:100%}
+</style></head><body>
+<header>
+ <div><h1>FY27 Planning Workbench</h1><div class="sub">Code calculates · AI-style drafts explain · humans approve · all in $k</div></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap">
+  <label class="sub">Scenario <select id="sc"><option>Base</option><option>Upside</option><option>Downside</option></select></label>
+  <label class="sub">Signed in as <select id="role"><option value="owner">Line owner (MFA ✓)</option><option value="cfo">CFO (MFA ✓)</option><option value="admin">Admin (MFA ✓)</option><option value="view">Viewer</option></select></label>
+ </div>
+</header>
+<nav id="nav"></nav>
+<main id="v"></main>
+<script>
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const LY={rev:[820,790,860,900,940,980,960,1000,1050,1100,1180,1260],it:[48,48,49,50,50,51,52,52,53,54,55,56],ga:[96,96,97,98,98,99,100,100,101,102,103,104],gm:.62,mkt:.09,hc:22,cph:7.2};
+const BUD={g:.12,gm:.63,hires:4,cph:7.5,mkt:.09,itg:.06,gag:.03};
+const SC={Base:{g:.15,gm:.63,hires:5,cph:7.5,mkt:.09,itg:.06,gag:.03},Upside:{g:.22,gm:.64,hires:8,cph:7.5,mkt:.10,itg:.08,gag:.04},Downside:{g:.05,gm:.60,hires:1,cph:7.5,mkt:.07,itg:.03,gag:.02}};
+const DEF=[['g','Revenue growth vs LY',0,.4,.01,'%'],['gm','Gross margin',.5,.75,.005,'%'],['hires','Net new hires in year',0,15,1,''],['cph','Cost per head /month ($k)',5,12,.1,''],['mkt','Marketing % of revenue',.03,.15,.005,'%'],['itg','IT/software cost growth',0,.2,.01,'%'],['gag','G&A cost growth',0,.1,.005,'%']];
+const LINES=[['rev','Revenue'],['cogs','Cost of sales'],['gp','Gross profit'],['pay','Payroll'],['mkt','Marketing'],['it','Software & IT'],['ga','G&A'],['opex','Total opex'],['ebitda','EBITDA']];
+const OWN={rev:'Sales lead',pay:'HR lead',mkt:'Marketing lead',it:'IT lead',ga:'Ops lead'};
+const sum=a=>a.reduce((x,y)=>x+y,0);
+function calc(d){const rev=rot(LY.rev).map(x=>x*(1+d.g)),cogs=rev.map(x=>x*(1-d.gm)),
+ pay=MO.map((_,i)=>(LY.hc+d.hires*(i+1)/12)*d.cph),mkt=rev.map(x=>x*d.mkt),
+ it=rot(LY.it).map(x=>x*(1+d.itg)),ga=rot(LY.ga).map(x=>x*(1+d.gag));
+ const gp=rev.map((x,i)=>x-cogs[i]),opex=rev.map((_,i)=>pay[i]+mkt[i]+it[i]+ga[i]),ebitda=gp.map((x,i)=>x-opex[i]);
+ return{rev,cogs,gp,pay,mkt,it,ga,opex,ebitda}}
+function calcLY(){const rev=rot(LY.rev),cogs=rev.map(x=>x*(1-LY.gm)),pay=MO.map(()=>LY.hc*LY.cph),mkt=rev.map(x=>x*LY.mkt),it=rot(LY.it),ga=rot(LY.ga);
+ const gp=rev.map((x,i)=>x-cogs[i]),opex=rev.map((_,i)=>pay[i]+mkt[i]+it[i]+ga[i]);return{rev,cogs,gp,pay,mkt,it,ga,opex,ebitda:gp.map((x,i)=>x-opex[i])}}
+let ly,bud;const recal=()=>{ly=calcLY();bud=calc(BUD)};
+let scen='Base',role='owner',tab='Dashboard',drivers={...SC.Base};
+let cm={},st={},log=[];
+const fmt=n=>Math.round(n).toLocaleString('en-US'),pc=n=>(n*100).toFixed(1)+'%';
+const stamp=()=>new Date().toLocaleString();
+function audit(a){log.unshift(`<b>${{cfo:'CFO',owner:'Line owner',admin:'Admin',view:'Viewer'}[role]}</b> · ${a} <span class="sub">${stamp()}</span>`)}
+function draft(k,p){const f=sum(p[k]),b=sum(bud[k]),l=sum(ly[k]),dv=f-b,cost=['pay','mkt','it','ga'].includes(k);
+ const good=cost?dv<=0:dv>=0,name=LINES.find(x=>x[0]===k)[1];
+ return `${name}: plan of ${fmt(f)}k is ${fmt(Math.abs(dv))}k (${pc(Math.abs(dv/b))}) ${dv>=0?'above':'below'} budget and ${pc((f-l)/l)} vs last year. This is ${good?'favourable':'unfavourable'} to EBITDA. Driver behind the movement: ${k==='rev'?'growth assumption of '+pc(drivers.g):k==='pay'?drivers.hires+' net hires at '+drivers.cph+'k/month':k==='mkt'?'spend ratio of '+pc(drivers.mkt)+' of revenue':'run-rate cost growth assumption'}. [Owner to add context and actions.]`}
+function cls(v,cost){return(cost?v<=0:v>=0)?'pos':'neg'}
+function render(){
+ const p=calc(drivers),ro=role!=='owner';
+ document.getElementById('nav').innerHTML=['Dashboard','Overview','Drivers','Monthly P&L','Commentary','Admin','Audit trail'].map(t=>`<button class="${t===tab?'on':''}" onclick="tab='${t}';render()">${t}</button>`).join('');
+ let h='';
+ if(tab==='Overview'){
+  const e=sum(p.ebitda),eb=sum(bud.ebitda),el=sum(ly.ebitda),r=sum(p.rev);
+  h+=`<div class="kpis"><div class="kpi"><span>FY Revenue</span><b>${fmt(r)}</b><span>${pc(r/sum(ly.rev)-1)} vs LY</span></div>
+  <div class="kpi"><span>FY EBITDA</span><b>${fmt(e)}</b><span class="${cls(e-eb)}">${e-eb>=0?'+':''}${fmt(e-eb)} vs budget</span></div>
+  <div class="kpi"><span>EBITDA margin</span><b>${pc(e/r)}</b><span>LY ${pc(el/sum(ly.rev))}</span></div>
+  <div class="kpi"><span>Year-end headcount</span><b>${LY.hc+drivers.hires}</b><span>LY ${LY.hc}</span></div></div>
+  <div class="card sc"><h2>Plan vs Budget vs Last Year (FY, $k)</h2><table><tr><th></th><th>Plan</th><th>Budget</th><th>Var vs Bud</th><th>Last Year</th><th>Var vs LY</th></tr>`;
+  LINES.forEach(([k,n])=>{const f=sum(p[k]),b=sum(bud[k]),l=sum(ly[k]),cost=['cogs','pay','mkt','it','ga','opex'].includes(k);
+   h+=`<tr class="${['gp','opex','ebitda'].includes(k)?'t':''}"><td>${n}</td><td>${fmt(f)}</td><td>${fmt(b)}</td><td class="${cls(f-b,cost)}">${fmt(f-b)}</td><td>${fmt(l)}</td><td class="${cls(f-l,cost)}">${fmt(f-l)}</td></tr>`});
+  h+=`</table><div class="note">Every figure is computed by code from drivers. Variance text in Commentary is generated from these numbers only.</div></div>`;
+ }
+ if(tab==='Drivers'){
+  h+=`<div class="card"><h2>Planning drivers · ${scen} scenario</h2>${ro?'<div class="note">Read-only for your role.</div>':''}<div class="drv">`;
+  DEF.forEach(([k,n,mn,mx,s,u])=>{h+=`<div><label>${n}</label><div class="r"><input type="range" min="${mn}" max="${mx}" step="${s}" value="${drivers[k]}" ${ro?'disabled':''} oninput="setD('${k}',this.value,this)"><output>${u?pc(drivers[k]):drivers[k]}</output></div><div class="sub">Budget: ${u?pc(BUD[k]):BUD[k]}</div></div>`});
+  h+=`</div><div class="note">Changing a driver re-opens approval on all commentary.</div></div>`;
+ }
+ if(tab==='Monthly P&L'){
+  h+=`<div class="card sc"><h2>Monthly plan ($k) · FY starts ${MO[CAL.s-1]}</h2><table><tr><th></th>${FMS().map(m=>`<th>${m}</th>`).join('')}<th>FY</th></tr>`;
+  LINES.forEach(([k,n])=>{h+=`<tr class="${['gp','opex','ebitda'].includes(k)?'t':''}"><td>${n}</td>${p[k].map(x=>`<td>${fmt(x)}</td>`).join('')}<td><b>${fmt(sum(p[k]))}</b></td></tr>`});
+  h+=`</table></div>`;
+ }
+ if(tab==='Commentary'){
+  h+=`<div class="card"><h2>Variance commentary · review workflow</h2><div class="note" style="margin:-6px 0 8px">Owners edit and submit; the CFO approves or rejects. Switch role (top right) to try both.</div></div>`;
+  Object.keys(OWN).forEach(k=>{const s=st[k]||'Draft';if(cm[k]==null)cm[k]=draft(k,p);
+   h+=`<div class="card"><div style="display:flex;justify-content:space-between"><b>${LINES.find(x=>x[0]===k)[1]} <span class="sub">· ${OWN[k]}</span></b><span class="pill ${s}">${s}</span></div>
+   <textarea ${role!=='owner'||s==='Approved'?'disabled':''} oninput="cm['${k}']=this.value">${cm[k]}</textarea>
+   <button ${role!=='owner'||s==='Approved'||s==='Submitted'?'disabled':''} onclick="regen('${k}')">Regenerate draft</button>
+   <button class="p" ${role!=='owner'||s==='Submitted'||s==='Approved'?'disabled':''} onclick="setS('${k}','Submitted')">Submit to CFO</button>
+   <button class="p" ${role!=='cfo'||s!=='Submitted'?'disabled':''} onclick="setS('${k}','Approved')">Approve</button>
+   <button ${role!=='cfo'||s!=='Submitted'?'disabled':''} onclick="setS('${k}','Rejected')">Reject</button></div>`});
+ }
+ if(tab==='Audit trail'){h+=`<div class="card log"><h2>Audit trail</h2>${log.length?log.map(x=>`<div>${x}</div>`).join(''):'<div class="sub">No activity yet.</div>'}<div class="note">Production: immutable log with SSO/MFA identity, enforced by role-based access on the server.</div></div>`}
+ if(tab==='Dashboard')h+=dash();if(tab==='Admin')h+=admin();
+ document.getElementById('v').innerHTML=h;
+}
+function setD(k,v,el){drivers[k]=+v;el.nextElementSibling.textContent=DEF.find(d=>d[0]===k)[5]?pc(+v):v;
+ Object.keys(OWN).forEach(x=>{cm[x]=null;st[x]='Draft'});
+ clearTimeout(window.t);window.t=setTimeout(()=>{audit(`changed driver "${k}" to ${v}`);},600)}
+function setS(k,s){st[k]=s;audit(`${s.toLowerCase()} commentary for ${LINES.find(x=>x[0]===k)[1]}`);render()}
+function regen(k){cm[k]=draft(k,calc(drivers));audit('regenerated draft for '+k);render()}
+document.getElementById('sc').onchange=e=>{scen=e.target.value;drivers={...SC[scen]};Object.keys(OWN).forEach(x=>{cm[x]=null;st[x]='Draft'});audit('switched scenario to '+scen);render()};
+document.getElementById('role').onchange=e=>{role=e.target.value;render()};
+/* ===== Fiscal calendar ===== */
+const CAL={s:1,fy:2026,prior:1,future:1};
+const fp=r=>({fy:CAL.s===1||r.m<CAL.s?r.y:r.y+1,p:((r.m-CAL.s+12)%12)+1});
+const FM=i=>MO[(CAL.s-1+i)%12],FMS=()=>MO.map((_,i)=>FM(i)),rot=a=>a.map((_,j)=>a[(CAL.s-1+j)%12]);
+const calYears=()=>{const a=[];for(let y=CAL.fy-CAL.prior;y<=CAL.fy+CAL.future;y++)a.push(y);return a};
+function syncS(fy){S.y=fy;S.ver='Actual';S.to=Math.max(1,...LED.filter(r=>r.v==='Actual'&&fp(r).fy===fy).map(r=>fp(r).p))}
+function calSet(k,v){CAL[k]=+v;recal();if(k!=='prior'&&k!=='future')syncS(CAL.fy);audit(`calendar: ${k} set to ${v}`);render()}
+/* ===== Ledger, metadata, hierarchy ===== */
+let ACC=[{c:'4000',n:'Revenue',g:'Revenue',al:'Sales'},{c:'5000',n:'Cost of sales',g:'COGS',al:'COGS'},{c:'6000',n:'Payroll',g:'Opex',al:'Salaries'},{c:'6100',n:'Marketing',g:'Opex',al:'Advertising'},{c:'6200',n:'Software & IT',g:'Opex',al:'IT'},{c:'6300',n:'G&A',g:'Opex',al:'Admin'}];
+let ENT=[{n:'Retail',p:'Consumer'},{n:'Online',p:'Consumer'},{n:'Wholesale',p:'Trade'}];
+const DIVS=()=>[...new Set(ENT.map(e=>e.p))],CODES=ACC.map(a=>a.c);
+const RB={Retail:400,Online:300,Wholesale:250},RT={Retail:[.42,.14,.05,.03,.06],Online:[.34,.10,.12,.05,.04],Wholesale:[.48,.08,.02,.02,.05]},SE=[.9,.85,.95,1,1.05,1.05,1,1,1.05,1.1,1.2,1.35];
+function amt(m,e,ai,f){const ei=Object.keys(RB).indexOf(e),r=RB[e]*SE[m-1]*f;return ai?r*RT[e][ai-1]*(1+.04*Math.sin(m*3+ai+ei)):r}
+let LED=[];
+function gen(y,ms,v,f){ms.forEach(m=>Object.keys(RB).forEach(e=>CODES.forEach((c,ai)=>LED.push({y,m,e,a:c,v,x:+amt(m,e,ai,f).toFixed(1)}))))}
+const M12=MO.map((_,i)=>i+1);gen(2025,M12,'Actual',1);gen(2026,[1,2,3,4,5,6],'Actual',1.12);gen(2026,M12,'Budget',1.14);
+/* ===== Dashboard ===== */
+const S={y:2026,from:1,to:6,div:'All',ent:'All',ver:'Actual',met:'Revenue',cum:0};
+const ents=()=>{let l=ENT.filter(e=>S.div==='All'||e.p===S.div);if(S.ent!=='All'&&l.some(e=>e.n===S.ent))l=l.filter(e=>e.n===S.ent);return l.map(e=>e.n)};
+const O0=()=>({rev:0,cogs:0,opex:0,n:0}),addO=(a,b)=>({rev:a.rev+b.rev,cogs:a.cogs+b.cogs,opex:a.opex+b.opex,n:a.n+b.n});
+function mm(y,ver,es){const a=M12.map(O0);LED.forEach(r=>{const q=fp(r);if(q.fy!==y||r.v!==ver||!es.includes(r.e))return;const g=(ACC.find(x=>x.c===r.a)||{}).g,o=a[q.p-1];o.n++;if(g==='Revenue')o.rev+=r.x;else if(g==='COGS')o.cogs+=r.x;else if(g==='Opex')o.opex+=r.x});return a}
+const MV=(o,k)=>k==='Revenue'?o.rev:k==='Opex'?o.opex:k==='EBITDA'?o.rev-o.cogs-o.opex:o.rev?(o.rev-o.cogs)/o.rev:0;
+const rng=(a,m1,m2)=>a.slice(m1-1,m2).reduce(addO,O0());
+function ser(y,ver,es){let c=O0();return mm(y,ver,es).map(o=>{c=addO(c,o);return o.n?MV(S.cum?c:o,S.met):null})}
+function sl(k,v){S[k]=['y','from','to','cum'].includes(k)?+v:v;if(k==='div')S.ent='All';if(S.from>S.to){if(k==='from')S.to=S.from;else S.from=S.to}render()}
+function bars(it,p){const mx=Math.max(...it.map(x=>Math.abs(x[1])),1e-9);return it.length?it.map(([n,v])=>`<div class="bar"><span>${n}</span><i class="${v<0?'n':''}" style="width:${Math.abs(v)/mx*100}%"></i><b>${p?pc(v):fmt(v)}</b></div>`).join(''):'<div class="sub">No data</div>'}
+function line(a,b){const W=700,H=230,L=48,B=24,T=10,pct=S.met==='GM %',al=[...a,...b].filter(v=>v!=null),mx=Math.max(...al,pct?.1:1)*1.1,mn=Math.min(0,...al),X=i=>L+i*(W-L-12)/11,Y=v=>T+(H-T-B)*(1-(v-mn)/(mx-mn)),F=v=>pct?pc(v):fmt(v);
+ const P2=s=>{let d='',pen=0;s.forEach((v,i)=>{if(v==null){pen=0;return}d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);pen=1});return d};
+ let g=`<rect x="${X(S.from-1)-9}" y="${T}" width="${X(S.to-1)-X(S.from-1)+18}" height="${H-T-B}" fill="var(--ac)" opacity=".1"/>`;
+ for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4;g+=`<line x1="${L}" x2="${W-8}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--bd)"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="var(--mu)">${F(v)}</text>`}
+ FMS().forEach((m,i)=>g+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--mu)">${m}</text>`);
+ g+=`<path d="${P2(b)}" fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="5 4"/><path d="${P2(a)}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>`;
+ a.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="var(--ac)"/>`});
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}</svg>`}
+function dash(){if(!calYears().includes(S.y))S.y=CAL.fy;const es=ents(),yrs=calYears();
+ const opt=(a,v)=>a.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join(''),mo=v=>FMS().map((m,i)=>`<option value="${i+1}" ${i+1==v?'selected':''}>${m}</option>`).join('');
+ let h=`<div class="card slic"><div><label>Fiscal year</label><select onchange="sl('y',this.value)">${opt(yrs,S.y)}</select></div><div><label>Month (Jan to selected)</label><select onchange="sl('to',this.value)">${mo(S.to)}</select></div><div><label>Division</label><select onchange="sl('div',this.value)">${opt(['All',...DIVS()],S.div)}</select></div><div><label>Entity</label><select onchange="sl('ent',this.value)">${opt(['All',...ENT.filter(e=>S.div==='All'||e.p===S.div).map(e=>e.n)],S.ent)}</select></div><div><label>Version</label><select onchange="sl('ver',this.value)">${opt(['Actual','Budget'],S.ver)}</select></div></div>`;
+ const a0=mm(S.y,S.ver,es);S.from=1;
+ const cur=rng(a0,S.from,S.to),py=rng(mm(S.y-1,'Actual',es),S.from,S.to);
+ h+='<div class="kpis">'+['Revenue','GM %','Opex','EBITDA'].map(k=>{const a=MV(cur,k),b=MV(py,k),has=py.n>0&&cur.n>0,d=k==='GM %'?(a-b)*100:b?(a/b-1)*100:0,good=k==='Opex'?d<=0:d>=0;
+  return `<div class="kpi"><span>${k} · ${FM(S.from-1)}–${FM(S.to-1)}</span><b>${k==='GM %'?pc(a):fmt(a)}</b><span class="${has?(good?'pos':'neg'):''}">${has?(d>=0?'+':'')+d.toFixed(1)+(k==='GM %'?' pp':'%')+' vs PY':'no prior-year data'}</span></div>`}).join('')+'</div>';
+ const tr=k=>{S.met=k;return `<div class="card"><h2>${k} trend · ${S.y} ${S.ver} (solid) vs ${S.y-1} Actual (dashed)</h2>${line(ser(S.y,S.ver,es).map((v,i)=>i<S.to?v:null),ser(S.y-1,'Actual',es).map((v,i)=>i<S.to?v:null))}</div>`};
+ h+=`<div class="grid2">${tr('Revenue')}${tr('EBITDA')}</div>`;S.met='Revenue';
+ const eb=ENT.filter(e=>S.div==='All'||e.p===S.div).map(e=>[e.n,MV(rng(mm(S.y,S.ver,[e.n]),S.from,S.to),S.met)]),ab={};
+ LED.forEach(r=>{const q=fp(r);if(q.fy===S.y&&r.v===S.ver&&q.p>=S.from&&q.p<=S.to&&es.includes(r.e)){const a=ACC.find(x=>x.c===r.a);if(a&&a.g!=='Revenue')ab[a.n]=(ab[a.n]||0)+r.x}});
+ return h+`<div class="grid2"><div class="card"><h2>${S.met} by entity</h2>${bars(eb,S.met==='GM %')}</div><div class="card"><h2>Cost mix by account</h2>${bars(Object.entries(ab))}</div></div>`+pl(es)}
+const PL={Revenue:1,COGS:0,Opex:0},GL={Revenue:'Revenue',COGS:'Cost of sales',Opex:'Operating expenses'};
+function tg(g){PL[g]=!PL[g];render()}
+function pl(es){const M={},has=M12.map(()=>0);ACC.forEach(a=>M[a.c]=M12.map(()=>0));
+ LED.forEach(r=>{const q=fp(r);if(q.fy===S.y&&r.v===S.ver&&es.includes(r.e)&&M[r.a]){M[r.a][q.p-1]+=r.x;has[q.p-1]=1}});
+ const gs=g=>M12.map((_,i)=>ACC.filter(a=>a.g===g).reduce((s,a)=>s+M[a.c][i],0)),R=gs('Revenue'),C=gs('COGS'),O=gs('Opex'),GP=R.map((x,i)=>x-C[i]),EB=GP.map((x,i)=>x-O[i]);
+ const cells=a=>a.slice(0,S.to).map((v,i)=>`<td>${has[i]?fmt(v):'–'}</td>`).join('')+`<td><b>${fmt(sum(a.slice(0,S.to)))}</b></td>`;
+ const grp=(g,a)=>`<tr class="t" style="cursor:pointer" onclick="tg('${g}')"><td>${PL[g]?'▾':'▸'} ${GL[g]}</td>${cells(a)}</tr>`+(PL[g]?ACC.filter(x=>x.g===g).map(x=>`<tr><td style="padding-left:26px;color:var(--mu)">${x.n}</td>${cells(M[x.c])}</tr>`).join(''):'');
+ const tot=(n,a)=>`<tr class="t" style="background:var(--bg)"><td>${n}</td>${cells(a)}</tr>`;
+ return `<div class="card sc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h2 style="margin:0">P&amp;L · FY${S.y} ${S.ver} · YTD ${FM(S.to-1)} ($k)</h2><span><button onclick="PL.Revenue=PL.COGS=PL.Opex=1;render()">Expand all</button> <button onclick="PL.Revenue=PL.COGS=PL.Opex=0;render()">Collapse all</button></span></div><table><tr><th></th>${FMS().slice(0,S.to).map(m=>`<th>${m}</th>`).join('')}<th>YTD</th></tr>${grp('Revenue',R)}${grp('COGS',C)}${tot('Gross profit',GP)}${grp('Opex',O)}${tot('EBITDA',EB)}</table><div class="note">Click a heading to expand or collapse its accounts. Follows the Year, Month (Jan to selected), Division, Entity and Version slicers.</div></div>`}
+/* ===== Admin: metadata, hierarchy, pipeline ===== */
+let AT='Metadata';const P={s:1,txt:'',tx:{trim:0,ci:0,alias:0,sc:1,defE:''},tgt:'Actual',msg:''};
+function admin(){const ad=role==='admin',d=ad?'':'disabled';
+ let h=`<div class="sm">${['Calendar','Metadata','Hierarchy','Data pipeline','Ledger'].map(t=>`<button class="${t===AT?'on':''}" onclick="AT='${t}';render()">${t}</button>`).join('')}</div>`;
+ if(!ad)h+='<div class="note" style="margin:-4px 0 10px">View only. Switch to the Admin role (top right) to change metadata or load data.</div>';
+ if(AT==='Calendar'){const sel=(k,a,lab)=>`<div><label>${lab}</label><select ${d} onchange="calSet('${k}',this.value)">${a.map(([v,t])=>`<option value="${v}" ${CAL[k]==v?'selected':''}>${t}</option>`).join('')}</select></div>`,n=[0,1,2,3].map(i=>[i,i]);
+  h+=`<div class="card"><h2>Fiscal calendar</h2><div class="slic">${sel('s',MO.map((m,i)=>[i+1,m]),'Fiscal year starts in')}<div><label>Fiscal year ends in</label><b>${MO[(CAL.s+10)%12]}</b></div>${sel('fy',[2024,2025,2026,2027,2028].map(y=>[y,'FY'+y]),'Current fiscal year')}${sel('prior',n,'Prior years shown')}${sel('future',n,'Future years shown')}</div>
+  <p>FY${CAL.fy} = <b>${MO[CAL.s-1]} ${CAL.s===1?CAL.fy:CAL.fy-1} – ${MO[(CAL.s+10)%12]} ${CAL.fy}</b> · Year slicer offers ${calYears().map(y=>'FY'+y).join(', ')}</p>
+  <table class="l"><tr><th>Period</th>${FMS().map((m,i)=>`<th>P${i+1}</th>`).join('')}</tr><tr><td>Month</td>${FMS().map(m=>`<td>${m}</td>`).join('')}</tr></table>
+  <div class="note">Changing these re-bases the dashboard, YTD, P&amp;L columns, charts and the planning tabs. Fiscal years are named by the year they end in. Ledger data stays on calendar dates.</div></div>`}
+ if(AT==='Metadata')h+=`<div class="card sc l"><h2>Account metadata</h2><table><tr><th>Code</th><th>Name</th><th>Report group</th><th>Source-system alias</th></tr>${ACC.map((a,i)=>`<tr><td>${a.c}</td><td><input ${d} value="${a.n}" onchange="ACC[${i}].n=this.value;audit('renamed account ${a.c}')"></td><td><select ${d} onchange="ACC[${i}].g=this.value;audit('regrouped account ${a.c}')">${['Revenue','COGS','Opex'].map(g=>`<option ${g===a.g?'selected':''}>${g}</option>`).join('')}</select></td><td><input ${d} value="${a.al}" onchange="ACC[${i}].al=this.value"></td></tr>`).join('')}</table><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><input id="nc" placeholder="New code" ${d}><input id="nn" placeholder="Name" ${d}><button ${d} onclick="addAcc()">Add account</button></div><div class="note">The report group decides where an account lands in the P&L and dashboard.</div></div>`;
+ if(AT==='Hierarchy')h+=`<div class="grid2"><div class="card"><h2>Reporting hierarchy</h2><b>Group</b>${DIVS().map(v=>`<div style="margin-left:14px"><b>▸ ${v}</b>${ENT.filter(e=>e.p===v).map(e=>`<div style="margin-left:18px">└ ${e.n}</div>`).join('')}</div>`).join('')}</div><div class="card sc l"><h2>Entities</h2><table><tr><th>Entity</th><th>Parent division</th></tr>${ENT.map((e,i)=>`<tr><td>${e.n}</td><td><input list="dv" ${d} value="${e.p}" onchange="ENT[${i}].p=this.value;audit('moved ${e.n} to '+this.value);render()"></td></tr>`).join('')}</table><datalist id="dv">${DIVS().map(v=>`<option>${v}</option>`).join('')}</datalist><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><input id="ne" placeholder="New entity" ${d}><input id="np" list="dv" placeholder="Division" ${d}><button ${d} onclick="addEnt()">Add entity</button></div></div></div>`;
+ if(AT==='Data pipeline')h+=pipe(ad,d);
+ if(AT==='Ledger'){const g={};LED.forEach(r=>{const k=r.v+' '+r.y,o=g[k]||(g[k]={n:0,a:99,b:0,rev:0});o.n++;o.a=Math.min(o.a,r.m);o.b=Math.max(o.b,r.m);if((ACC.find(a=>a.c===r.a)||{}).g==='Revenue')o.rev+=r.x});
+  h+=`<div class="card sc l"><h2>Loaded ledger</h2><table><tr><th>Version / year</th><th>Rows</th><th>Months</th><th>Revenue ($k)</th></tr>${Object.entries(g).sort().map(([k,o])=>`<tr><td>${k}</td><td>${o.n}</td><td>${MO[o.a-1]}–${MO[o.b-1]}</td><td>${fmt(o.rev)}</td></tr>`).join('')}</table></div>`}
+ return h}
+function addAcc(){const c=document.getElementById('nc').value.trim(),n=document.getElementById('nn').value.trim();if(!c||!n||ACC.some(a=>a.c===c)){alert('Enter a unique code and a name');return}ACC.push({c,n,g:'Opex',al:n});audit('added account '+c);render()}
+function addEnt(){const n=document.getElementById('ne').value.trim(),p=document.getElementById('np').value.trim();if(!n||!p||ENT.some(e=>e.n===n)){alert('Enter a unique entity and a division');return}ENT.push({n,p});audit('added entity '+n);render()}
+function sample(){const L=['year,month,entity,account,amount'];[7,8,9].forEach(m=>Object.keys(RB).forEach(e=>CODES.forEach((c,ai)=>{const v=amt(m,e,ai,1.12).toFixed(1);let en=e;if(m===9&&e==='Retail'&&ai===1)en=' retail ';if(m===9&&e==='Retail'&&ai===0)en='';L.push([2026,m,en,ai===2?'Salaries':c,v].join(','))})));
+ L.push('2026,13,Retail,4000,100','2026,8,Retail,9999,12','2026,8,Online,6000,n/a',L[1]);return L.join('\n')}
+async function dlTpl(){const L=['year,month,entity,account,amount'];
+ ENT.slice(0,3).forEach(e=>ACC.slice(0,2).forEach((a,ai)=>L.push([2026,1,e.n,a.c,amt(1,Object.keys(RB).includes(e.n)?e.n:'Retail',ai,1).toFixed(1)].join(','))));
+ const m=document.getElementById('dlmsg'),say=t=>{if(m)m.textContent=t};
+ try{if(typeof claude==='undefined'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([L.join('\n')+'\n'],{type:'text/csv'}));a.download='load_template.csv';a.click();say('Downloaded.');audit('downloaded load template');return}
+  const dl=await claude.use('downloads');if(!dl){say('Download is not available in this view.');return}
+  await dl.save({filename:'load_template.csv',data:L.join('\n')+'\n'});say('Saved. Replace the example rows with your data.');audit('downloaded load template')}
+ catch(e){say(e&&e.code==='declined'?'':'Could not save the file.')}}
+function parse(t){const L=t.trim().split(/\r?\n/),h=L.shift().split(',').map(s=>s.trim().toLowerCase());return L.filter(l=>l.trim()).map((l,i)=>{const c=l.split(','),o={_i:i+2};h.forEach((k,j)=>o[k]=c[j]===undefined?'':c[j]);return o})}
+function xf(r,t){const o={...r};if(t.trim)for(const k in o)if(typeof o[k]==='string')o[k]=o[k].trim();
+ if(t.ci){const e=ENT.find(e=>e.n.toLowerCase()===o.entity.trim().toLowerCase());if(e)o.entity=e.n}
+ if(t.alias){const a=ACC.find(a=>[a.c,a.n,a.al].some(z=>z.toLowerCase()===o.account.trim().toLowerCase()));if(a)o.account=a.c}
+ if(!o.entity&&t.defE)o.entity=t.defE;if(t.sc!==1&&o.amount!==''&&!isNaN(+o.amount))o.amount=String(+o.amount/t.sc);return o}
+function val(rows){const err=[],ok=[],seen={};rows.forEach(r=>{const m=[],y=+r.year,mo=+r.month;
+ if(!r.year||!r.month||!r.entity||!r.account||r.amount==='')m.push('Missing required value');
+ else{if(!(y>=2000&&y<=2100))m.push('Bad year');if(!(Number.isInteger(mo)&&mo>=1&&mo<=12))m.push('Month must be 1-12');
+  if(!ENT.some(e=>e.n===r.entity))m.push('Unknown entity "'+r.entity+'"');if(!ACC.some(a=>a.c===r.account))m.push('Unknown account "'+r.account+'"');
+  if(isNaN(+r.amount))m.push('Amount not numeric');const k=[r.year,r.month,r.entity,r.account].join('|');if(seen[k])m.push('Duplicate of row '+seen[k]);else seen[k]=r._i}
+ m.length?err.push({r,m:m.join('; ')}):ok.push(r)});return{err,ok}}
+const errT=e=>e.length?`<table><tr><th>Row</th><th>Data</th><th>Issue</th></tr>${e.slice(0,10).map(x=>`<tr><td>${x.r._i}</td><td>${[x.r.year,x.r.month,x.r.entity,x.r.account,x.r.amount].join(' · ')}</td><td>${x.m}</td></tr>`).join('')}</table>${e.length>10?`<div class="note">+${e.length-10} more</div>`:''}`:'<div class="sub">No errors</div>';
+function goto(n){if(n>1&&!P.txt.trim()){alert('Load some data first');return}P.msg='';P.s=n;render()}
+function fl(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{P.txt=r.result;audit('selected file '+f.name);render()};r.readAsText(f)}
+function pipe(ad,d){const sp=['1 Load','2 Validate','3 Transform','4 Stage & confirm'];
+ let h=`<div class="steps">${sp.map((t,i)=>`<span class="${P.s===i+1?'on':P.s>i+1?'done':''}">${t}</span>`).join('')}</div>`;
+ if(P.msg)h+=`<div class="card pos">✓ ${P.msg}</div>`;
+ const raw=P.txt.trim()?parse(P.txt):[];
+ if(P.s===1)h+=`<div class="card"><h2>Load source data</h2><label class="sub">Source <select><option>Paste / upload CSV</option><option disabled>Google Drive folder (not enabled in demo)</option><option disabled>ERP / GL API (planned)</option></select></label><p class="note">Required columns: <b>year</b> (calendar, YYYY), <b>month</b> (calendar, 1–12), <b>entity</b> (must exist in Hierarchy), <b>account</b> (code from Metadata), <b>amount</b> ($k, numeric). One row per year, month, entity and account.</p><button onclick="dlTpl()">⬇ Download sample file structure</button> <span id="dlmsg" class="note"></span><p><input type="file" accept=".csv,.txt" ${d} onchange="fl(this)"> <button ${d} onclick="P.txt=sample();render()">Load sample file</button> <button ${d} onclick="P.txt='';render()">Clear</button></p><textarea ${d} style="min-height:130px;font-family:monospace;font-size:12px" oninput="P.txt=this.value">${P.txt}</textarea><button class="p" ${d} onclick="goto(2)">Validate →</button></div>`;
+ if(P.s===2){const v=val(raw);h+=`<div class="card sc l"><h2>Validation · raw file</h2><p><b>${raw.length}</b> rows · <span class="pos">${v.ok.length} valid</span> · <span class="neg">${v.err.length} with errors</span></p>${errT(v.err)}<div class="note">Rules: required fields · month 1–12 · entity in hierarchy · account code in metadata · numeric amount · no duplicate keys.</div><p><button onclick="goto(1)">← Back</button> <button class="p" ${d} onclick="goto(3)">Next: transform →</button></p></div>`}
+ if(P.s===3){const v=val(raw.map(r=>xf(r,P.tx))),ck=(k,l)=>`<label style="display:block"><input type="checkbox" ${P.tx[k]?'checked':''} ${d} onchange="P.tx.${k}=this.checked?1:0;render()"> ${l}</label>`;
+  h+=`<div class="card sc l"><h2>Simple transformations</h2>${ck('trim','Trim whitespace')}${ck('ci','Match entity names case-insensitively')}${ck('alias','Map account names / aliases to codes (from Metadata)')}<p><label>Default entity for blanks <select ${d} onchange="P.tx.defE=this.value;render()"><option value="">(none)</option>${ENT.map(e=>`<option ${P.tx.defE===e.n?'selected':''}>${e.n}</option>`).join('')}</select></label> <label>Amount scale <select ${d} onchange="P.tx.sc=+this.value;render()"><option value="1">as is</option><option value="1000" ${P.tx.sc===1000?'selected':''}>÷ 1,000 ($ → $k)</option></select></label></p><p>After transform: <span class="pos">${v.ok.length} valid</span> · <span class="neg">${v.err.length} rejected</span></p>${errT(v.err)}<p><button onclick="goto(2)">← Back</button> <button class="p" ${d} onclick="goto(4)">Next: staging →</button></p></div>`}
+ if(P.s===4){const v=val(raw.map(r=>xf(r,P.tx))),ok=v.ok,key=r=>[+r.year,+r.month,r.entity,r.account,P.tgt].join('|'),ex=new Set(LED.map(r=>[r.y,r.m,r.e,r.a,r.v].join('|')));
+  const ow=ok.filter(r=>ex.has(key(r))).length,mo=[...new Set(ok.map(r=>r.year+'-'+String(r.month).padStart(2,'0')))].sort(),rev=ok.filter(r=>ACC.find(a=>a.c===r.account).g==='Revenue').reduce((s,r)=>s+ +r.amount,0);
+  h+=`<div class="card sc l"><h2>Staging area</h2><div class="kpis"><div class="kpi"><span>Rows to load</span><b>${ok.length}</b></div><div class="kpi"><span>Rejected (excluded)</span><b class="${v.err.length?'neg':''}">${v.err.length}</b></div><div class="kpi"><span>Will overwrite</span><b>${ow}</b></div><div class="kpi"><span>Revenue staged ($k)</span><b>${fmt(rev)}</b></div></div><p class="sub">Periods: ${mo.join(', ')||'–'}</p><label>Load into <select ${d} onchange="P.tgt=this.value;render()"><option value="Actual">Actual (reporting)</option><option value="Budget" ${P.tgt==='Budget'?'selected':''}>Budget (planning)</option></select></label><table style="margin-top:10px"><tr><th>Period</th><th>Entity</th><th>Account</th><th>Amount</th></tr>${ok.slice(0,6).map(r=>`<tr><td>${r.year}-${r.month}</td><td>${r.entity}</td><td>${r.account}</td><td>${fmt(+r.amount)}</td></tr>`).join('')}</table><div class="note">Preview of first 6 staged rows. Rejected rows are never loaded.</div><p><label><input type="checkbox" id="cf" ${d}> I have reviewed the staging summary and approve this load.</label></p><button onclick="goto(3)">← Back</button> <button class="p" ${d} onclick="commit()">Confirm &amp; load</button></div>`}
+ return h}
+function commit(){const cf=document.getElementById('cf');if(!cf||!cf.checked){alert('Tick the approval box first.');return}
+ const ok=val(parse(P.txt).map(r=>xf(r,P.tx))).ok;if(!ok.length)return;
+ const K=new Set(ok.map(r=>[+r.year,+r.month,r.entity,r.account,P.tgt].join('|')));LED=LED.filter(r=>!K.has([r.y,r.m,r.e,r.a,r.v].join('|')));
+ ok.forEach(r=>LED.push({y:+r.year,m:+r.month,e:r.entity,a:r.account,v:P.tgt,x:+r.amount}));
+ if(P.tgt==='Actual')syncS(Math.max(...LED.filter(r=>r.v==='Actual').map(r=>fp(r).fy)));
+ audit(`loaded ${ok.length} rows into ${P.tgt} ledger`);P.msg=`Loaded ${ok.length} rows into ${P.tgt}. The dashboard now includes the new periods.`;P.txt='';P.s=1;render()}
+recal();audit('opened FY27 plan');render();
+</script></body></html>

@@ -42,6 +42,7 @@ textarea{width:100%;min-height:62px;margin:6px 0}
 .steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.steps span{padding:3px 10px;border-radius:99px;border:1px solid var(--bd);font-size:12px;color:var(--mu)}.steps span.on{background:var(--ac);color:#fff;border-color:var(--ac)}.steps span.done{color:var(--ok);border-color:var(--ok)}
 .sm{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}.sm button.on{background:var(--ac);color:#fff}
 .l td,.l th{text-align:left}.l input,.l select{max-width:100%}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;text-align:center}.g3 b{display:block;font-size:12px;color:var(--mu);font-weight:600}.lg{display:flex;gap:6px;align-items:center;font-size:12px;margin:3px 0}.lg i{width:10px;height:10px;border-radius:3px;display:inline-block}.pw{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 </style></head><body>
 <header>
  <div><h1>Unified Performance Planning Studio</h1><div class="sub">Data-driven projections · Clear variance analysis · Human control · Figures in $k</div></div>
@@ -156,8 +157,8 @@ function line(a,b){const W=700,H=230,L=48,B=24,T=10,pct=S.met==='GM %',al=[...a,
  let g=`<rect x="${X(S.from-1)-9}" y="${T}" width="${X(S.to-1)-X(S.from-1)+18}" height="${H-T-B}" fill="var(--ac)" opacity=".1"/>`;
  for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4;g+=`<line x1="${L}" x2="${W-8}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--bd)"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="var(--mu)">${F(v)}</text>`}
  FMS().forEach((m,i)=>g+=`<text x="${X(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--mu)">${m}</text>`);
- g+=`<path d="${P2(b)}" fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="5 4"/><path d="${P2(a)}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>`;
- a.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="var(--ac)"/>`});
+ g+=`<path d="${P2(b)}" fill="none" stroke="#f2a93b" stroke-width="2.5"/><path d="${P2(a)}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>`;
+ b.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="#f2a93b"/>`});a.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="var(--ac)"/>`});
  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}</svg>`}
 function dash(){if(!calYears().includes(S.y))S.y=CAL.fy;const es=ents(),yrs=calYears();
  const opt=(a,v)=>a.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join(''),mo=v=>FMS().map((m,i)=>`<option value="${i+1}" ${i+1==v?'selected':''}>${m}</option>`).join('');
@@ -165,12 +166,14 @@ function dash(){if(!calYears().includes(S.y))S.y=CAL.fy;const es=ents(),yrs=calY
  const a0=mm(S.y,S.ver,es);S.from=1;
  const cur=rng(a0,S.from,S.to),py=rng(mm(S.y-1,'Actual',es),S.from,S.to);
  h+='<div class="kpis">'+['Revenue','GM %','Opex','EBITDA'].map(k=>{const a=MV(cur,k),b=MV(py,k),has=py.n>0&&cur.n>0,d=k==='GM %'?(a-b)*100:b?(a/b-1)*100:0,good=k==='Opex'?d<=0:d>=0;
-  return `<div class="kpi"><span>${k} · ${FM(S.from-1)}–${FM(S.to-1)}</span><b>${k==='GM %'?pc(a):fmt(a)}</b><span class="${has?(good?'pos':'neg'):''}">${has?(d>=0?'+':'')+d.toFixed(1)+(k==='GM %'?' pp':'%')+' vs PY':'no prior-year data'}</span></div>`}).join('')+'</div>';
- const tr=k=>{S.met=k;return `<div class="card"><h2>${k} trend · ${S.y} ${S.ver} (solid) vs ${S.y-1} Actual (dashed)</h2>${line(ser(S.y,S.ver,es).map((v,i)=>i<S.to?v:null),ser(S.y-1,'Actual',es).map((v,i)=>i<S.to?v:null))}</div>`};
+  return `<div class="kpi"><span>${k} · ${FM(S.from-1)}–${FM(S.to-1)}</span><b>${k==='GM %'?pc(a):fmt(a)}</b><span class="${has?(good?'pos':'neg'):''}">${has?(d>=0?'+':'')+d.toFixed(1)+(k==='GM %'?' pp':'%')+' vs PY':'no prior-year data'}</span></div>`}).join('')+(()=>{const H=m3().HCa,o=sum(PM.hc.map(r=>r.count)),n=H[S.to-1],d=n-o;return `<div class="kpi"><span>Headcount · ${FM(S.to-1)}</span><b>${n}</b><span>${d>=0?'+':''}${d} vs start of year · ${ACTV} plan${S.y!==CAL.fy?' (FY'+CAL.fy+')':''}</span></div>`})()+'</div>';
+const bd=rng(mm(S.y,'Budget',es),S.from,S.to),att=bd.rev?cur.rev/bd.rev*100:0,mg=cur.rev?MV(cur,'EBITDA')/cur.rev*100:0,ox=cur.rev?cur.opex/cur.rev*100:0,GC=['#ef6f6c','#f2a93b','#0f9d8a'];
+ h+=`<div class="card"><h2>Performance gauges · YTD ${FM(S.to-1)}</h2><div class="g3"><div>${gauge(att,0,120,[[85,GC[0]],[100,GC[1]],[120,GC[2]]],att.toFixed(0)+'%')}<b>Revenue vs Budget</b></div><div>${gauge(mg,0,30,[[5,GC[0]],[12,GC[1]],[30,GC[2]]],mg.toFixed(1)+'%')}<b>EBITDA margin</b></div><div>${gauge(ox,0,60,[[25,GC[2]],[40,GC[1]],[60,GC[0]]],ox.toFixed(1)+'%')}<b>Opex % of revenue</b></div></div></div>`;
+ const tr=k=>{S.met=k;return `<div class="card"><h2>${k} trend</h2><div style="display:flex;gap:14px;margin-bottom:6px"><span class="lg"><i style="background:var(--ac)"></i>${S.y} ${S.ver}</span><span class="lg"><i style="background:#f2a93b"></i>${S.y-1} Actual</span></div>${line(ser(S.y,S.ver,es).map((v,i)=>i<S.to?v:null),ser(S.y-1,'Actual',es).map((v,i)=>i<S.to?v:null))}</div>`};
  h+=`<div class="grid2">${tr('Revenue')}${tr('EBITDA')}</div>`;S.met='Revenue';
  const eb=ENT.filter(e=>S.div==='All'||e.p===S.div).map(e=>[e.n,MV(rng(mm(S.y,S.ver,[e.n]),S.from,S.to),S.met)]),ab={};
  LED.forEach(r=>{const q=fp(r);if(q.fy===S.y&&r.v===S.ver&&q.p>=S.from&&q.p<=S.to&&es.includes(r.e)){const a=ACC.find(x=>x.c===r.a);if(a&&a.g!=='Revenue')ab[a.n]=(ab[a.n]||0)+r.x}});
- return h+`<div class="grid2"><div class="card"><h2>${S.met} by entity</h2>${bars(eb,S.met==='GM %')}</div><div class="card"><h2>Cost mix by account</h2>${bars(Object.entries(ab))}</div></div>`+pl(es)}
+ return h+`<div class="grid2"><div class="card"><h2>Revenue share by entity</h2>${pie(eb)}</div><div class="card"><h2>Cost share by account</h2>${pie(Object.entries(ab))}</div></div>`+pl(es)}
 const PL={Revenue:1,COGS:0,Opex:0},GL={Revenue:'Revenue',COGS:'Cost of sales',Opex:'Operating expenses'};
 function tg(g){PL[g]=!PL[g];render()}
 function pl(es){const M={},has=M12.map(()=>0);ACC.forEach(a=>M[a.c]=M12.map(()=>0));
@@ -285,6 +288,15 @@ function planCom(M){const B=ledTot('Budget');let h='<div class="card"><h2>Plan c
   if(cm[k]==null)cm[k]=cDraft(M,c,B);const s=st[k]||'Draft',o=role==='owner';
   h+=`<div class="card"><div style="display:flex;justify-content:space-between"><b>${c[1]}</b><span class="pill ${s}">${s}</span></div><textarea ${!o||s==='Approved'?'disabled':''} oninput="cm['${k}']=this.value">${cm[k]}</textarea><button ${!o||s==='Approved'||s==='Submitted'?'disabled':''} onclick="cm['${k}']=null;render()">Regenerate draft</button> <button class="p" ${o&&(s==='Draft'||s==='Rejected')?'':'disabled'} onclick="cmv['${k}']=${f};cSet('${k}','Submitted')">Submit to CFO</button> <button class="p" ${role==='cfo'&&s==='Submitted'?'':'disabled'} onclick="cSet('${k}','Approved')">Approve</button> <button ${role==='cfo'&&s==='Submitted'?'':'disabled'} onclick="cSet('${k}','Rejected')">Reject</button></div>`});
  return h}
+const PAL=['#0f9d8a','#f2a93b','#7c5cff','#ef6f6c','#3aa0ff','#8bc34a'];
+function gauge(v,mn,mx,bands,txt){const fr=x=>Math.min(1,Math.max(0,(x-mn)/(mx-mn))),C=f=>{const t=Math.PI*(1-f);return[(100+80*Math.cos(t)).toFixed(1),(100-80*Math.sin(t)).toFixed(1)]};let g='',p0=0;
+ bands.forEach(([to,c])=>{const a=C(p0),b=C(fr(to));g+=`<path d="M${a[0]} ${a[1]}A80 80 0 0 1 ${b[0]} ${b[1]}" fill="none" stroke="${c}" stroke-width="16"/>`;p0=fr(to)});
+ const t=Math.PI*(1-fr(v));g+=`<line x1="100" y1="100" x2="${(100+62*Math.cos(t)).toFixed(1)}" y2="${(100-62*Math.sin(t)).toFixed(1)}" stroke="var(--tx)" stroke-width="3" stroke-linecap="round"/><circle cx="100" cy="100" r="6" fill="var(--tx)"/><text x="100" y="121" text-anchor="middle" font-size="16" font-weight="700" fill="var(--tx)">${txt}</text><text x="14" y="116" font-size="9" fill="var(--mu)" text-anchor="middle">${mn}</text><text x="186" y="116" font-size="9" fill="var(--mu)" text-anchor="middle">${mx}</text>`;
+ return `<svg viewBox="0 0 200 126" style="width:100%;max-width:240px;height:auto">${g}</svg>`}
+function pie(it){it=it.filter(x=>x[1]>0);const T=sum(it.map(x=>x[1]));if(!T)return '<div class="sub">No data</div>';let a=-Math.PI/2,g='';
+ const P=(r,t)=>(80+r*Math.cos(t)).toFixed(1)+','+(80+r*Math.sin(t)).toFixed(1);
+ it.forEach(([n,v],i)=>{const d=v/T*Math.PI*2,c=PAL[i%PAL.length];if(it.length===1)g+=`<circle cx="80" cy="80" r="55" fill="none" stroke="${c}" stroke-width="30"/>`;else{const e=a+d,L=d>Math.PI?1:0;g+=`<path d="M${P(70,a)}A70 70 0 ${L} 1 ${P(70,e)}L${P(40,e)}A40 40 0 ${L} 0 ${P(40,a)}Z" fill="${c}" stroke="var(--card)" stroke-width="2"/>`}a+=d});
+ return `<div class="pw"><svg viewBox="0 0 160 160" style="width:160px;height:160px"><g>${g}</g><text x="80" y="82" text-anchor="middle" font-size="15" font-weight="700" fill="var(--tx)">${fmt(T)}</text><text x="80" y="96" text-anchor="middle" font-size="9" fill="var(--mu)">total $k</text></svg><div>${it.map(([n,v],i)=>`<div class="lg"><i style="background:${PAL[i%PAL.length]}"></i>${n} <b>${(v/T*100).toFixed(1)}%</b></div>`).join('')}</div></div>`}
 /* ===== Admin: metadata, hierarchy, pipeline ===== */
 let AT='Metadata';const P={s:1,txt:'',tx:{trim:0,ci:0,alias:0,sc:1,defE:''},tgt:'Actual',msg:''};
 function admin(){const ad=role==='admin',d=ad?'':'disabled';
